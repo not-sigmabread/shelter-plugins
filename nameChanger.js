@@ -1,5 +1,12 @@
-// Shelter Plugin structure
+// Grab the root utilities natively from the shelter global environment
+const { patcher } = shelter;
+
+// Keep track of our keybind hook variable across files
+let handleMacroKeybind = null;
+
 export function onLoad() {
+    console.log("Nickname Macro Plugin loaded into Shelter! Press F4 to run.");
+
     const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     async function clickButtons() {
@@ -39,7 +46,7 @@ export function onLoad() {
             return; 
         }
         
-        // 3. Select and click the edit button
+        // 3. Select and click the edit button (NOW it exists in the HTML!)
         const edit = document.querySelector("[class*='footer_'] button");
         if (edit) edit.click();
 
@@ -71,7 +78,7 @@ export function onLoad() {
         if (save) save.click();
         
         // Wait 1.5 seconds
-        await wait(1500);
+        await wait (1500);
 
         // Close menu
         const close = document.querySelector("[class*='contentHeader_'] button");
@@ -79,23 +86,23 @@ export function onLoad() {
         console.log("Macro execution complete!");
     }
 
-    // Assign listener to window so we can safely clear it later
-    window._handleNicknameMacroKeybind = (event) => {
+    // Set up the listener function
+    handleMacroKeybind = (event) => {
         if (event.key === 'F4') { 
             event.preventDefault(); 
             clickButtons();
         }
     };
 
-    window.addEventListener('keydown', window._handleNicknameMacroKeybind);
-    console.log("Nickname Macro Plugin loaded! Press F4 to fire.");
+    // Attach to the window framework
+    window.addEventListener('keydown', handleMacroKeybind);
 }
 
-// Clean up when plugin is disabled/unloaded
+// Clean up completely when plugin gets disabled to prevent multi-firing memory leaks
 export function onUnload() {
-    if (window._handleNicknameMacroKeybind) {
-        window.removeEventListener('keydown', window._handleNicknameMacroKeybind);
-        delete window._handleNicknameMacroKeybind;
-        console.log("Nickname Macro Plugin unloaded cleanly.");
+    if (handleMacroKeybind) {
+        window.removeEventListener('keydown', handleMacroKeybind);
+        handleMacroKeybind = null;
+        console.log("Nickname Macro Plugin unloaded cleanly, gang.");
     }
 }
